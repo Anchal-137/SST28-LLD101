@@ -4,7 +4,16 @@ public class Main {
     public static void main(String[] args) {
         System.out.println("=== Cafeteria Billing ===");
 
-        CafeteriaSystem sys = new CafeteriaSystem();
+        DiscountPolicy discountPolicy = new DiscountPolicy();
+
+        CafeteriaSystem sys = new CafeteriaSystem(
+            new MemoryInvoice(),
+            new PricingService(),
+            new TaxRules(),
+            discountPolicy,
+            new InvoiceFormatter()
+        );
+
         sys.addToMenu(new MenuItem("M1", "Veg Thali", 80.00));
         sys.addToMenu(new MenuItem("C1", "Coffee", 30.00));
         sys.addToMenu(new MenuItem("S1", "Sandwich", 60.00));
