@@ -8,7 +8,7 @@ public class Main {
 
         System.out.println("=== Student Onboarding ===");
 
-        OnboardingService svc = new OnboardingService(repo,parser,validator,printer);
+        OnboardingService svc = new OnboardingService(parser,validator,repo,printer);
 
         String raw = "name=Riya;email=riya@sst.edu;phone=9876543210;program=CSE";
         svc.registerFromRawInput(raw);
