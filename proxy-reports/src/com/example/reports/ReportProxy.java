@@ -1,18 +1,14 @@
 package com.example.reports;
 
-/**
- * TODO (student):
- * Implement Proxy responsibilities here:
- * - access check
- * - lazy loading
- * - caching of RealReport within the same proxy
- */
+// Proxy: access control + lazy loading + caching of real report
 public class ReportProxy implements Report {
 
     private final String reportId;
     private final String title;
     private final String classification;
     private final AccessControl accessControl = new AccessControl();
+
+    private RealReport cached; // lazy loaded, reused on next call
 
     public ReportProxy(String reportId, String title, String classification) {
         this.reportId = reportId;
@@ -22,9 +18,15 @@ public class ReportProxy implements Report {
 
     @Override
     public void display(User user) {
-        // Starter placeholder: intentionally incorrect.
-        // Students should remove direct real loading on every call.
-        RealReport report = new RealReport(reportId, title, classification);
-        report.display(user);
+        if (!accessControl.canAccess(user, classification)) {
+            System.out.println("ACCESS DENIED: " + user.getName()
+                    + " (" + user.getRole() + ") cannot view " + classification + " report " + reportId);
+            return;
+        }
+
+        if (cached == null) {
+            cached = new RealReport(reportId, title, classification);
+        }
+        cached.display(user);
     }
 }
