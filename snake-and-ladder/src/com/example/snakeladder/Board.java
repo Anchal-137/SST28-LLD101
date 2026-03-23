@@ -7,20 +7,20 @@ import java.util.Map;
 public class Board {
     private final int size;
     private final int maxCell;
-    private final Map<Integer, Integer> snakeMap;
-    private final Map<Integer, Integer> ladderMap;
+    private final Map<Integer, Integer> snakePositions;
+    private final Map<Integer, Integer> ladderPositions;
 
     public Board(int size, List<Snake> snakes, List<Ladder> ladders) {
         this.size = size;
         this.maxCell = size * size;
-        this.snakeMap = new HashMap<>();
-        this.ladderMap = new HashMap<>();
+        this.snakePositions = new HashMap<>();
+        this.ladderPositions = new HashMap<>();
 
         for (Snake snake : snakes) {
-            snakeMap.put(snake.getHead(), snake.getTail());
+            snakePositions.put(snake.getStart(), snake.getEnd());
         }
         for (Ladder ladder : ladders) {
-            ladderMap.put(ladder.getStart(), ladder.getEnd());
+            ladderPositions.put(ladder.getBottom(), ladder.getTop());
         }
     }
 
@@ -28,34 +28,34 @@ public class Board {
         return maxCell;
     }
 
-    public int movePlayer(int currentPosition, int diceValue) {
+    public int resolveMove(int currentPosition, int diceValue) {
         int newPosition = currentPosition + diceValue;
 
         if (newPosition > maxCell) {
             return currentPosition;
         }
 
-        if (snakeMap.containsKey(newPosition)) {
-            int snakeTail = snakeMap.get(newPosition);
-            System.out.println("  Bitten by snake at " + newPosition + "! Sliding down to " + snakeTail);
+        if (snakePositions.containsKey(newPosition)) {
+            int snakeTail = snakePositions.get(newPosition);
+            System.out.println("  Hit by snake at " + newPosition + "! Sliding down to " + snakeTail);
             newPosition = snakeTail;
-        } else if (ladderMap.containsKey(newPosition)) {
-            int ladderEnd = ladderMap.get(newPosition);
-            System.out.println("  Climbed ladder at " + newPosition + "! Moving up to " + ladderEnd);
-            newPosition = ladderEnd;
+        } else if (ladderPositions.containsKey(newPosition)) {
+            int ladderTop = ladderPositions.get(newPosition);
+            System.out.println("  Found ladder at " + newPosition + "! Climbing up to " + ladderTop);
+            newPosition = ladderTop;
         }
 
         return newPosition;
     }
 
-    public boolean isOccupied(int cell) {
-        return snakeMap.containsKey(cell) || ladderMap.containsKey(cell)
-                || snakeMap.containsValue(cell) || ladderMap.containsValue(cell);
+    public boolean isCellTaken(int cell) {
+        return snakePositions.containsKey(cell) || ladderPositions.containsKey(cell)
+                || snakePositions.containsValue(cell) || ladderPositions.containsValue(cell);
     }
 
-    public void printBoard() {
+    public void displayBoard() {
         System.out.println("Board size: " + size + "x" + size + " (cells 1 to " + maxCell + ")");
-        System.out.println("Snakes: " + snakeMap);
-        System.out.println("Ladders: " + ladderMap);
+        System.out.println("Snakes: " + snakePositions);
+        System.out.println("Ladders: " + ladderPositions);
     }
 }

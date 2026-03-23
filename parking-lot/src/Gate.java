@@ -1,12 +1,12 @@
 public class Gate {
-    private final int gateNumber;
+    private final int gateId;
     private final int floor;
 
-    public Gate(int gateNumber, int floor) {
-        this.gateNumber = gateNumber;
+    public Gate(int gateId, int floor) {
+        this.gateId = gateId;
         this.floor = floor;
     }
 
-    public int getGateNumber() { return gateNumber; }
+    public int getGateId() { return gateId; }
     public int getFloor() { return floor; }
 }

@@ -1,17 +1,17 @@
 public class Main {
     public static void main(String[] args) {
         System.out.println("=== Cap Pen ===");
-        Pen capPen = new Pen(new CapStrategy(), new Refill(Color.BLUE));
+        Pen capPen = new Pen(new CapMechanism(), new Refill(InkColor.BLUE));
         capPen.write("Hello");
 
-        capPen.changeRefill(new Refill(Color.RED));
+        capPen.swapRefill(new Refill(InkColor.RED));
         capPen.write("World");
 
         System.out.println("\n=== Click Pen ===");
-        Pen clickPen = new Pen(new ClickStrategy(), new Refill(Color.BLACK));
+        Pen clickPen = new Pen(new ClickMechanism(), new Refill(InkColor.BLACK));
         clickPen.write("Design Patterns");
 
-        clickPen.changeRefill(new Refill(Color.GREEN));
+        clickPen.swapRefill(new Refill(InkColor.GREEN));
         clickPen.write("are fun");
     }
 }

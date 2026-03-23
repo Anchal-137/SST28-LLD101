@@ -1,12 +1,12 @@
 public class Vehicle {
-    private final String licensePlate;
+    private final String numberPlate;
     private final VehicleType type;
 
-    public Vehicle(String licensePlate, VehicleType type) {
-        this.licensePlate = licensePlate;
+    public Vehicle(String numberPlate, VehicleType type) {
+        this.numberPlate = numberPlate;
         this.type = type;
     }
 
-    public String getLicensePlate() { return licensePlate; }
+    public String getNumberPlate() { return numberPlate; }
     public VehicleType getType() { return type; }
 }

@@ -6,42 +6,42 @@ import java.util.Map;
 import java.util.Optional;
 
 public class ParkingLot {
-    private final List<ParkingSlot> slots;
-    private final SlotAssignmentStrategy assignmentStrategy;
-    private final BillingService billingService;
-    private final Map<String, ParkingTicket> activeTickets;
-    private int ticketCounter;
+    private final List<ParkingSpot> spots;
+    private final SpotAllocationStrategy allocationStrategy;
+    private final InvoiceGenerator invoiceGenerator;
+    private final Map<String, ParkingPass> activePasses;
+    private int passCounter;
 
-    public ParkingLot(List<ParkingSlot> slots, SlotAssignmentStrategy assignmentStrategy, BillingService billingService) {
-        this.slots = new ArrayList<>(slots);
-        this.assignmentStrategy = assignmentStrategy;
-        this.billingService = billingService;
-        this.activeTickets = new HashMap<>();
-        this.ticketCounter = 0;
+    public ParkingLot(List<ParkingSpot> spots, SpotAllocationStrategy allocationStrategy, InvoiceGenerator invoiceGenerator) {
+        this.spots = new ArrayList<>(spots);
+        this.allocationStrategy = allocationStrategy;
+        this.invoiceGenerator = invoiceGenerator;
+        this.activePasses = new HashMap<>();
+        this.passCounter = 0;
     }
 
-    public ParkingTicket entry(Vehicle vehicle, Gate entryGate, LocalDateTime entryTime) {
-        Optional<ParkingSlot> slotOpt = assignmentStrategy.findSlot(slots, vehicle.getType(), entryGate);
-        if (slotOpt.isEmpty()) {
-            throw new IllegalStateException("No available slot for vehicle: " + vehicle.getLicensePlate());
+    public ParkingPass parkVehicle(Vehicle vehicle, Gate entryGate, LocalDateTime entryTime) {
+        Optional<ParkingSpot> spotOpt = allocationStrategy.allocateSpot(spots, vehicle.getType(), entryGate);
+        if (spotOpt.isEmpty()) {
+            throw new IllegalStateException("No available spot for vehicle: " + vehicle.getNumberPlate());
         }
 
-        ParkingSlot slot = slotOpt.get();
-        slot.occupy();
+        ParkingSpot spot = spotOpt.get();
+        spot.reserve();
 
-        String ticketId = "T-" + (++ticketCounter);
-        ParkingTicket ticket = new ParkingTicket(ticketId, vehicle, slot, entryTime);
-        activeTickets.put(ticketId, ticket);
-        return ticket;
+        String passId = "P-" + (++passCounter);
+        ParkingPass pass = new ParkingPass(passId, vehicle, spot, entryTime);
+        activePasses.put(passId, pass);
+        return pass;
     }
 
-    public Bill exit(String ticketId, LocalDateTime exitTime) {
-        ParkingTicket ticket = activeTickets.remove(ticketId);
-        if (ticket == null) {
-            throw new IllegalArgumentException("Invalid ticket: " + ticketId);
+    public Invoice releaseVehicle(String passId, LocalDateTime exitTime) {
+        ParkingPass pass = activePasses.remove(passId);
+        if (pass == null) {
+            throw new IllegalArgumentException("Invalid pass: " + passId);
         }
 
-        ticket.getSlot().free();
-        return billingService.generateBill(ticket, exitTime);
+        pass.getSpot().release();
+        return invoiceGenerator.createInvoice(pass, exitTime);
     }
 }

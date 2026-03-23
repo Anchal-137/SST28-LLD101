@@ -6,9 +6,9 @@ import java.util.List;
 import java.util.Random;
 import java.util.Set;
 
-public class BoardFactory {
+public class BoardGenerator {
 
-    public static Board createBoard(int size, DifficultyLevel difficulty) {
+    public static Board generate(int size, GameDifficulty difficulty) {
         int maxCell = size * size;
         int maxEntities = Math.max(1, (maxCell - 2) / 5);
         int count = Math.min(size, maxEntities);
@@ -21,29 +21,29 @@ public class BoardFactory {
         List<Ladder> ladders = new ArrayList<>();
 
         for (int i = 0; i < count; i++) {
-            int head = randomUnusedCell(random, usedCells, 2, maxCell - 1);
+            int head = pickAvailableCell(random, usedCells, 2, maxCell - 1);
             usedCells.add(head);
 
-            int tail = randomUnusedCell(random, usedCells, 1, head - 1);
+            int tail = pickAvailableCell(random, usedCells, 1, head - 1);
             usedCells.add(tail);
 
             snakes.add(new Snake(head, tail));
         }
 
         for (int i = 0; i < count; i++) {
-            int start = randomUnusedCell(random, usedCells, 2, maxCell - 1);
-            usedCells.add(start);
+            int bottom = pickAvailableCell(random, usedCells, 2, maxCell - 1);
+            usedCells.add(bottom);
 
-            int end = randomUnusedCell(random, usedCells, start + 1, maxCell - 1);
-            usedCells.add(end);
+            int top = pickAvailableCell(random, usedCells, bottom + 1, maxCell - 1);
+            usedCells.add(top);
 
-            ladders.add(new Ladder(start, end));
+            ladders.add(new Ladder(bottom, top));
         }
 
         return new Board(size, snakes, ladders);
     }
 
-    private static int randomUnusedCell(Random random, Set<Integer> used, int min, int max) {
+    private static int pickAvailableCell(Random random, Set<Integer> used, int min, int max) {
         List<Integer> available = new ArrayList<>();
         for (int i = min; i <= max; i++) {
             if (!used.contains(i)) {

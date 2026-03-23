@@ -1,9 +1,9 @@
 public class Refill {
-    private final Color color;
+    private final InkColor inkColor;
 
-    public Refill(Color color) {
-        this.color = color;
+    public Refill(InkColor inkColor) {
+        this.inkColor = inkColor;
     }
 
-    public Color getColor() { return color; }
+    public InkColor getInkColor() { return inkColor; }
 }

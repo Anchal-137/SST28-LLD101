@@ -1,22 +1,22 @@
 public class Pen {
-    private final OpenCloseStrategy openClose;
-    private Refill refill;
+    private final PenMechanism mechanism;
+    private Refill cartridge;
 
-    public Pen(OpenCloseStrategy openClose, Refill refill) {
-        this.openClose = openClose;
-        this.refill = refill;
+    public Pen(PenMechanism mechanism, Refill cartridge) {
+        this.mechanism = mechanism;
+        this.cartridge = cartridge;
     }
 
     public void write(String text) {
-        openClose.start();
-        System.out.println("  Writing '" + text + "' in " + refill.getColor());
-        openClose.close();
+        mechanism.open();
+        System.out.println("  Writing '" + text + "' in " + cartridge.getInkColor());
+        mechanism.retract();
     }
 
-    public void changeRefill(Refill newRefill) {
-        System.out.println("  Changing refill: " + refill.getColor() + " -> " + newRefill.getColor());
-        this.refill = newRefill;
+    public void swapRefill(Refill newCartridge) {
+        System.out.println("  Swapping refill: " + cartridge.getInkColor() + " -> " + newCartridge.getInkColor());
+        this.cartridge = newCartridge;
     }
 
-    public Color getColor() { return refill.getColor(); }
+    public InkColor getInkColor() { return cartridge.getInkColor(); }
 }

@@ -3,12 +3,12 @@ package com.example.snakeladder;
 public class Player {
     private final String name;
     private int position;
-    private boolean hasWon;
+    private boolean finished;
 
     public Player(String name) {
         this.name = name;
         this.position = 0;
-        this.hasWon = false;
+        this.finished = false;
     }
 
     public String getName() {
@@ -23,12 +23,12 @@ public class Player {
         this.position = position;
     }
 
-    public boolean hasWon() {
-        return hasWon;
+    public boolean isFinished() {
+        return finished;
     }
 
-    public void markWon() {
-        this.hasWon = true;
+    public void setFinished() {
+        this.finished = true;
     }
 
     @Override

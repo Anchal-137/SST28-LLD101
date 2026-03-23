@@ -1,24 +1,24 @@
 package com.example.snakeladder;
 
 public class Snake {
-    private final int head;
-    private final int tail;
+    private final int start;
+    private final int end;
 
-    public Snake(int head, int tail) {
-        this.head = head;
-        this.tail = tail;
+    public Snake(int start, int end) {
+        this.start = start;
+        this.end = end;
     }
 
-    public int getHead() {
-        return head;
+    public int getStart() {
+        return start;
     }
 
-    public int getTail() {
-        return tail;
+    public int getEnd() {
+        return end;
     }
 
     @Override
     public String toString() {
-        return "Snake{" + head + " -> " + tail + "}";
+        return "Snake{" + start + " -> " + end + "}";
     }
 }

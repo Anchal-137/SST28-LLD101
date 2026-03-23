@@ -17,7 +17,7 @@ public class App {
 
         System.out.print("Enter difficulty level (easy/hard): ");
         String diffInput = scanner.next().trim().toUpperCase();
-        DifficultyLevel difficulty = DifficultyLevel.valueOf(diffInput);
+        GameDifficulty difficulty = GameDifficulty.valueOf(diffInput);
 
         List<Player> players = new ArrayList<>();
         for (int i = 1; i <= playerCount; i++) {
@@ -26,11 +26,11 @@ public class App {
             players.add(new Player(name));
         }
 
-        Board board = BoardFactory.createBoard(n, difficulty);
-        GameEngine engine = new GameEngine(board, players);
+        Board board = BoardGenerator.generate(n, difficulty);
+        GameController controller = new GameController(board, players);
 
         System.out.println("\n--- Game Start ---\n");
-        engine.play();
+        controller.startGame();
 
         scanner.close();
     }

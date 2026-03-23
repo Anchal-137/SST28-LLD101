@@ -1,6 +1,6 @@
 package com.example.snakeladder;
 
-public enum DifficultyLevel {
+public enum GameDifficulty {
     EASY,
     HARD
 }

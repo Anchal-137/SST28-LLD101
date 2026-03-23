@@ -1,24 +1,24 @@
 package com.example.snakeladder;
 
 public class Ladder {
-    private final int start;
-    private final int end;
+    private final int bottom;
+    private final int top;
 
-    public Ladder(int start, int end) {
-        this.start = start;
-        this.end = end;
+    public Ladder(int bottom, int top) {
+        this.bottom = bottom;
+        this.top = top;
     }
 
-    public int getStart() {
-        return start;
+    public int getBottom() {
+        return bottom;
     }
 
-    public int getEnd() {
-        return end;
+    public int getTop() {
+        return top;
     }
 
     @Override
     public String toString() {
-        return "Ladder{" + start + " -> " + end + "}";
+        return "Ladder{" + bottom + " -> " + top + "}";
     }
 }
