@@ -1,0 +1,104 @@
+package com.bookmyshow.lock;
+
+import com.bookmyshow.model.Seat;
+import com.bookmyshow.model.Show;
+import com.bookmyshow.model.SeatStatus;
+
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+
+/**
+ * Manages temporary seat locks during payment window.
+ * Locks expire after a configurable timeout (default 5 minutes).
+ * Thread-safe using ConcurrentHashMap + synchronized blocks.
+ */
+public class SeatLockManager {
+    private static final int LOCK_TIMEOUT_MINUTES = 5;
+
+    // Key: showId + seatId, Value: lock expiry time
+    private final Map<String, LockInfo> lockMap = new ConcurrentHashMap<>();
+
+    public boolean lockSeats(Show show, List<Seat> seats, String userId) {
+        synchronized (show) {
+            // First check all seats are available
+            for (Seat seat : seats) {
+                String key = buildKey(show.getShowId(), seat.getSeatId());
+                SeatStatus status = show.getSeatStatus(seat.getSeatId());
+
+                if (status == SeatStatus.BOOKED) {
+                    return false;
+                }
+                if (status == SeatStatus.LOCKED) {
+                    LockInfo lock = lockMap.get(key);
+                    if (lock != null && !lock.isExpired()) {
+                        return false; // locked by another user
+                    }
+                    // expired lock — clean up and allow
+                }
+            }
+
+            // All seats available — lock them
+            LocalDateTime expiry = LocalDateTime.now().plusMinutes(LOCK_TIMEOUT_MINUTES);
+            for (Seat seat : seats) {
+                String key = buildKey(show.getShowId(), seat.getSeatId());
+                lockMap.put(key, new LockInfo(userId, expiry));
+                show.getSeatStatusMap().put(seat.getSeatId(), SeatStatus.LOCKED);
+            }
+            return true;
+        }
+    }
+
+    public void confirmSeats(Show show, List<Seat> seats) {
+        synchronized (show) {
+            for (Seat seat : seats) {
+                String key = buildKey(show.getShowId(), seat.getSeatId());
+                lockMap.remove(key);
+                show.getSeatStatusMap().put(seat.getSeatId(), SeatStatus.BOOKED);
+            }
+        }
+    }
+
+    public void releaseSeats(Show show, List<Seat> seats) {
+        synchronized (show) {
+            for (Seat seat : seats) {
+                String key = buildKey(show.getShowId(), seat.getSeatId());
+                lockMap.remove(key);
+                show.getSeatStatusMap().put(seat.getSeatId(), SeatStatus.AVAILABLE);
+            }
+        }
+    }
+
+    public void cleanExpiredLocks(Show show) {
+        synchronized (show) {
+            for (Seat seat : show.getScreen().getSeats()) {
+                String key = buildKey(show.getShowId(), seat.getSeatId());
+                LockInfo lock = lockMap.get(key);
+                if (lock != null && lock.isExpired()) {
+                    lockMap.remove(key);
+                    show.getSeatStatusMap().put(seat.getSeatId(), SeatStatus.AVAILABLE);
+                    System.out.println("  [LOCK] Expired lock released: " + seat);
+                }
+            }
+        }
+    }
+
+    private String buildKey(String showId, String seatId) {
+        return showId + "::" + seatId;
+    }
+
+    private static class LockInfo {
+        private final String userId;
+        private final LocalDateTime expiry;
+
+        LockInfo(String userId, LocalDateTime expiry) {
+            this.userId = userId;
+            this.expiry = expiry;
+        }
+
+        boolean isExpired() {
+            return LocalDateTime.now().isAfter(expiry);
+        }
+    }
+}
