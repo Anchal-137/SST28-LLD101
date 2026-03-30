@@ -1,9 +1,5 @@
 package com.elevator.model;
 
-/**
- * Elevator door with open/close behavior.
- * Door will NOT close if the weight sensor reports overload.
- */
 public class Door {
     private boolean open;
     private final String elevatorId;
@@ -26,7 +22,6 @@ public class Door {
             return false;
         }
         if (open) {
-            open = true;
             open = false;
             System.out.println("    [DOOR " + elevatorId + "] Closed");
         }

@@ -7,17 +7,15 @@ public class DebitCardGateway implements PaymentGateway {
 
     @Override
     public boolean processPayment(Payment payment) {
-        System.out.println("  [DEBIT_CARD] Processing payment of Rs." + payment.getAmount());
+        System.out.println("  [DEBIT_CARD] Processing Rs." + payment.getAmount());
         payment.setStatus(PaymentStatus.SUCCESS);
-        System.out.println("  [DEBIT_CARD] Payment successful: " + payment.getPaymentId());
         return true;
     }
 
     @Override
     public boolean processRefund(Payment payment) {
-        System.out.println("  [DEBIT_CARD] Refunding Rs." + payment.getAmount() + " to debit card");
+        System.out.println("  [DEBIT_CARD] Refunding Rs." + payment.getAmount());
         payment.setStatus(PaymentStatus.REFUNDED);
-        System.out.println("  [DEBIT_CARD] Refund successful: " + payment.getPaymentId());
         return true;
     }
 }

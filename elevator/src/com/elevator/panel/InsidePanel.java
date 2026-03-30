@@ -3,12 +3,6 @@ package com.elevator.panel;
 import com.elevator.model.Direction;
 import com.elevator.model.ElevatorCar;
 
-/**
- * Panel inside each elevator with floor buttons, open/close door,
- * and alarm button.
- * When a floor button is pressed, it adds an INTERNAL stop directly
- * to the elevator car.
- */
 public class InsidePanel {
     private final ElevatorCar car;
     private final Button[] floorButtons;

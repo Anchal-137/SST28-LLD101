@@ -3,11 +3,6 @@ package com.elevator.panel;
 import com.elevator.controller.ElevatorDispatcher;
 import com.elevator.model.Direction;
 
-/**
- * Panel on each floor with UP and DOWN buttons.
- * When pressed, it sends an EXTERNAL request to the dispatcher.
- * Common for all elevators on that floor.
- */
 public class OutsidePanel {
     private final int floor;
     private final Button upButton;

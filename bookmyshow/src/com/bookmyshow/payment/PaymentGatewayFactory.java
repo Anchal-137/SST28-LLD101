@@ -2,10 +2,6 @@ package com.bookmyshow.payment;
 
 import com.bookmyshow.model.PaymentMethod;
 
-/**
- * Factory Pattern: returns the correct PaymentGateway
- * based on the chosen payment method.
- */
 public class PaymentGatewayFactory {
 
     public static PaymentGateway getGateway(PaymentMethod method) {

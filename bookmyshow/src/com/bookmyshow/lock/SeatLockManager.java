@@ -9,20 +9,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-/**
- * Manages temporary seat locks during payment window.
- * Locks expire after a configurable timeout (default 5 minutes).
- * Thread-safe using ConcurrentHashMap + synchronized blocks.
- */
 public class SeatLockManager {
     private static final int LOCK_TIMEOUT_MINUTES = 5;
-
-    // Key: showId + seatId, Value: lock expiry time
     private final Map<String, LockInfo> lockMap = new ConcurrentHashMap<>();
 
     public boolean lockSeats(Show show, List<Seat> seats, String userId) {
         synchronized (show) {
-            // First check all seats are available
             for (Seat seat : seats) {
                 String key = buildKey(show.getShowId(), seat.getSeatId());
                 SeatStatus status = show.getSeatStatus(seat.getSeatId());
@@ -33,13 +25,13 @@ public class SeatLockManager {
                 if (status == SeatStatus.LOCKED) {
                     LockInfo lock = lockMap.get(key);
                     if (lock != null && !lock.isExpired()) {
-                        return false; // locked by another user
+                        return false;
                     }
-                    // expired lock — clean up and allow
+                    // expired, allow it
                 }
             }
 
-            // All seats available — lock them
+            // all good, lock them
             LocalDateTime expiry = LocalDateTime.now().plusMinutes(LOCK_TIMEOUT_MINUTES);
             for (Seat seat : seats) {
                 String key = buildKey(show.getShowId(), seat.getSeatId());

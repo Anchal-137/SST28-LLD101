@@ -1,9 +1,5 @@
 package com.elevator.model;
 
-/**
- * Represents a request to the elevator system.
- * Can be EXTERNAL (from a floor panel) or INTERNAL (from inside the elevator).
- */
 public class ElevatorRequest {
     private final int floor;
     private final Direction direction;

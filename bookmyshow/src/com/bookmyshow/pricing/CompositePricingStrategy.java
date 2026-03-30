@@ -5,11 +5,6 @@ import com.bookmyshow.model.Seat;
 
 import java.util.List;
 
-/**
- * Chains multiple pricing strategies together.
- * Each strategy can only increase the price — never decrease.
- * This ensures the "price can ONLY increase" invariant.
- */
 public class CompositePricingStrategy implements PricingStrategy {
     private final List<PricingStrategy> strategies;
 

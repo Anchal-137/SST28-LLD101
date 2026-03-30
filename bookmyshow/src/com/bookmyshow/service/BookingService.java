@@ -13,14 +13,6 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
-/**
- * Core booking service that handles:
- * 1. Seat locking (concurrency-safe)
- * 2. Price calculation via strategy
- * 3. Payment via factory-selected gateway
- * 4. Booking confirmation / rollback
- * 5. Cancellation with refund to original payment method
- */
 public class BookingService {
     private final SeatLockManager lockManager;
     private final PricingStrategy pricingStrategy;
@@ -36,33 +28,27 @@ public class BookingService {
         this.basePrices = basePrices;
     }
 
-    /**
-     * Full booking flow:
-     * 1. Lock seats → 2. Calculate price → 3. Process payment → 4. Confirm booking
-     * If payment fails → release seats and throw exception.
-     */
     public Booking bookTickets(User customer, Show show, List<Seat> seats,
                                PaymentMethod paymentMethod) {
-        // Step 1: Lock seats
+        // lock seats first
         boolean locked = lockManager.lockSeats(show, seats, customer.getUserId());
         if (!locked) {
             throw new SeatNotAvailableException(
                     "One or more seats are not available for show: " + show.getShowId());
         }
-        System.out.println("  [LOCK] Seats locked for " + customer.getName());
+        System.out.println("  Seats locked for " + customer.getName());
 
-        // Step 2: Calculate total price
+        // calculate price
         double totalPrice = 0;
         for (Seat seat : seats) {
             double base = basePrices.getOrDefault(seat.getSeatType(), 200.0);
             totalPrice += pricingStrategy.calculatePrice(show, seat, base);
         }
-        System.out.println("  [PRICE] Total: Rs." + String.format("%.2f", totalPrice));
+        System.out.println("  Total: Rs." + String.format("%.2f", totalPrice));
 
-        // Step 3: Process payment
+        // process payment
         String paymentId = "PAY-" + paymentCounter.incrementAndGet();
         Payment payment = new Payment(paymentId, totalPrice, paymentMethod);
-
         PaymentGateway gateway = PaymentGatewayFactory.getGateway(paymentMethod);
         boolean paymentSuccess = gateway.processPayment(payment);
 
@@ -71,7 +57,7 @@ public class BookingService {
             throw new PaymentFailedException("Payment failed for booking attempt");
         }
 
-        // Step 4: Confirm booking
+        // confirm booking
         String bookingId = "BKG-" + bookingCounter.incrementAndGet();
         Booking booking = new Booking(bookingId, customer, show, seats);
         booking.setPayment(payment);
@@ -79,34 +65,29 @@ public class BookingService {
         lockManager.confirmSeats(show, seats);
         bookingStore.put(bookingId, booking);
 
-        System.out.println("  [BOOKING] Confirmed: " + booking);
+        System.out.println("  Booking confirmed: " + booking);
         return booking;
     }
 
-    /**
-     * Cancel booking:
-     * 1. Release seats → 2. Refund to original payment method → 3. Mark cancelled
-     */
     public void cancelBooking(String bookingId) {
         Booking booking = bookingStore.get(bookingId);
         if (booking == null) {
             throw new IllegalArgumentException("Booking not found: " + bookingId);
         }
         if (booking.getStatus() == BookingStatus.CANCELLED) {
-            System.out.println("  [CANCEL] Booking already cancelled: " + bookingId);
+            System.out.println("  Already cancelled: " + bookingId);
             return;
         }
 
-        // Release seats
         lockManager.releaseSeats(booking.getShow(), booking.getBookedSeats());
 
-        // Refund to original payment method
+        // refund to original payment method
         Payment payment = booking.getPayment();
         PaymentGateway gateway = PaymentGatewayFactory.getGateway(payment.getMethod());
         gateway.processRefund(payment);
 
         booking.setStatus(BookingStatus.CANCELLED);
-        System.out.println("  [CANCEL] Booking cancelled: " + bookingId);
+        System.out.println("  Booking cancelled: " + bookingId);
     }
 
     public Booking getBooking(String bookingId) {

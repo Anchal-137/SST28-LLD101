@@ -9,13 +9,6 @@ import com.elevator.strategy.SchedulingStrategy;
 import java.util.List;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
-/**
- * Central dispatcher that receives external requests (from floor panels)
- * and assigns them to the best elevator using the configured strategy.
- *
- * Thread-safe: uses ConcurrentLinkedQueue and synchronized assignment
- * to prevent duplicate handling of the same request.
- */
 public class ElevatorDispatcher {
     private final List<ElevatorCar> elevators;
     private SchedulingStrategy strategy;
@@ -33,42 +26,31 @@ public class ElevatorDispatcher {
         System.out.println("[DISPATCHER] Strategy changed to: " + strategy.getClass().getSimpleName());
     }
 
-    /**
-     * Called by OutsidePanel when UP/DOWN is pressed on a floor.
-     * Assigns exactly ONE elevator to handle this request.
-     */
     public void handleExternalRequest(int floor, Direction direction) {
         ElevatorRequest request = new ElevatorRequest(floor, direction, RequestType.EXTERNAL);
 
         synchronized (assignmentLock) {
             ElevatorCar selected = strategy.selectElevator(elevators, floor, direction);
             if (selected == null) {
-                System.out.println("[DISPATCHER] No elevator available for: " + request);
+                System.out.println("[DISPATCHER] No elevator available, queuing request");
                 pendingRequests.add(request);
                 return;
             }
             selected.addStop(floor, direction);
-            System.out.println("[DISPATCHER] Assigned " + selected.getCarId()
-                    + " for " + request);
+            System.out.println("[DISPATCHER] Assigned " + selected.getCarId() + " for " + request);
         }
     }
 
-    /**
-     * Retry any pending requests that couldn't be assigned earlier.
-     */
     public void retryPendingRequests() {
         while (!pendingRequests.isEmpty()) {
             ElevatorRequest req = pendingRequests.peek();
             synchronized (assignmentLock) {
-                ElevatorCar selected = strategy.selectElevator(
-                        elevators, req.getFloor(), req.getDirection());
+                ElevatorCar selected = strategy.selectElevator(elevators, req.getFloor(), req.getDirection());
                 if (selected != null) {
                     pendingRequests.poll();
                     selected.addStop(req.getFloor(), req.getDirection());
-                    System.out.println("[DISPATCHER] Retry assigned " + selected.getCarId()
-                            + " for " + req);
                 } else {
-                    break; // still no elevator available
+                    break;
                 }
             }
         }

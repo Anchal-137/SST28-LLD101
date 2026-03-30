@@ -1,9 +1,5 @@
 package com.elevator.model;
 
-/**
- * Display showing current floor and direction of an elevator.
- * Can be shown both inside the elevator and on each floor.
- */
 public class Display {
     private int currentFloor;
     private Direction direction;

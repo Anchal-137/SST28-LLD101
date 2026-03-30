@@ -6,16 +6,6 @@ import com.elevator.state.ElevatorState;
 
 import java.util.TreeSet;
 
-/**
- * Represents a single elevator car with its own door, display,
- * sensors, state, and request queues.
- *
- * The elevator processes requests using two sorted sets:
- * - upStops: floors to visit while going UP (ascending order)
- * - downStops: floors to visit while going DOWN (descending order)
- *
- * Thread-safe: all state mutations are synchronized.
- */
 public class ElevatorCar {
     private final String carId;
     private final int minFloor;
@@ -27,11 +17,8 @@ public class ElevatorCar {
 
     private ElevatorState state;
     private Direction direction;
-
-    // Sorted sets for efficient floor-order traversal
     private final TreeSet<Integer> upStops;
     private final TreeSet<Integer> downStops;
-
     private boolean alarmActive;
 
     public ElevatorCar(String carId, int minFloor, int maxFloor) {
@@ -49,7 +36,6 @@ public class ElevatorCar {
         this.alarmActive = false;
     }
 
-    // ---- Getters ----
     public String getCarId() { return carId; }
     public int getCurrentFloor() { return floorSensor.getCurrentFloor(); }
     public ElevatorState getState() { return state; }
@@ -69,11 +55,9 @@ public class ElevatorCar {
         return upStops.size() + downStops.size();
     }
 
-    // ---- Request handling ----
     public synchronized void addStop(int floor, Direction requestDir) {
         if (state == ElevatorState.MAINTENANCE || alarmActive) {
-            System.out.println("  [" + carId + "] Cannot accept - " +
-                    (alarmActive ? "ALARM ACTIVE" : "UNDER MAINTENANCE"));
+            System.out.println("  [" + carId + "] Cannot accept request right now");
             return;
         }
         if (floor < minFloor || floor > maxFloor) return;
@@ -86,10 +70,6 @@ public class ElevatorCar {
         System.out.println("  [" + carId + "] Stop added: floor " + floor + " (" + requestDir + ")");
     }
 
-    /**
-     * Process all pending stops. This simulates the elevator movement.
-     * Called by the ElevatorSystem's processing loop.
-     */
     public synchronized void processStops() {
         if (state == ElevatorState.MAINTENANCE || alarmActive) return;
         if (upStops.isEmpty() && downStops.isEmpty()) {
@@ -102,20 +82,14 @@ public class ElevatorCar {
             return;
         }
 
-        // Decide direction based on current state
         if (direction == Direction.NONE || direction == Direction.UP) {
             processUpStops();
-            if (!downStops.isEmpty()) {
-                processDownStops();
-            }
+            if (!downStops.isEmpty()) processDownStops();
         } else {
             processDownStops();
-            if (!upStops.isEmpty()) {
-                processUpStops();
-            }
+            if (!upStops.isEmpty()) processUpStops();
         }
 
-        // After processing all, go idle
         if (upStops.isEmpty() && downStops.isEmpty()) {
             state = ElevatorState.IDLE;
             direction = Direction.NONE;
@@ -127,29 +101,18 @@ public class ElevatorCar {
     private void processUpStops() {
         direction = Direction.UP;
         state = ElevatorState.MOVING_UP;
-
-        while (!upStops.isEmpty()) {
-            int nextFloor = upStops.pollFirst();
-            moveToFloor(nextFloor);
-        }
+        while (!upStops.isEmpty()) moveToFloor(upStops.pollFirst());
     }
 
     private void processDownStops() {
         direction = Direction.DOWN;
         state = ElevatorState.MOVING_DOWN;
-
-        while (!downStops.isEmpty()) {
-            int nextFloor = downStops.pollLast();
-            moveToFloor(nextFloor);
-        }
+        while (!downStops.isEmpty()) moveToFloor(downStops.pollLast());
     }
 
     private void moveToFloor(int targetFloor) {
         int current = getCurrentFloor();
-        if (current == targetFloor) {
-            arriveAtFloor(targetFloor);
-            return;
-        }
+        if (current == targetFloor) { arriveAtFloor(targetFloor); return; }
 
         Direction moveDir = targetFloor > current ? Direction.UP : Direction.DOWN;
         state = moveDir == Direction.UP ? ElevatorState.MOVING_UP : ElevatorState.MOVING_DOWN;
@@ -158,13 +121,11 @@ public class ElevatorCar {
 
         System.out.println("  [" + carId + "] Moving " + moveDir + ": " + current + " -> " + targetFloor);
 
-        // Simulate floor-by-floor movement
         int step = moveDir == Direction.UP ? 1 : -1;
         for (int f = current + step; ; f += step) {
             floorSensor.setCurrentFloor(f);
             if (f == targetFloor) break;
         }
-
         arriveAtFloor(targetFloor);
     }
 
@@ -172,46 +133,41 @@ public class ElevatorCar {
         floorSensor.setCurrentFloor(floor);
         display.update(floor, direction);
 
-        // Check weight before opening door
         if (weightSensor.isOverloaded()) {
             System.out.println("  [" + carId + "] WARNING: Overloaded at floor " + floor
-                    + " (" + weightSensor.getCurrentWeight() + "kg > "
-                    + weightSensor.getMaxCapacity() + "kg) - NOT moving further!");
+                    + " (" + weightSensor.getCurrentWeight() + "kg) - NOT moving!");
             door.openDoor();
             return;
         }
 
-        // Open door, simulate stop, close door
         state = ElevatorState.DOOR_OPEN;
         door.openDoor();
         System.out.println("  [" + carId + "] Arrived at floor " + floor);
         door.closeDoor(weightSensor.isOverloaded());
     }
 
-    // ---- Alarm ----
     public synchronized void triggerAlarm() {
         alarmActive = true;
         state = ElevatorState.IDLE;
         direction = Direction.NONE;
-        System.out.println("  [" + carId + "] !!! ALARM TRIGGERED - Elevator STOPPED !!!");
+        System.out.println("  [" + carId + "] ALARM TRIGGERED!");
     }
 
     public synchronized void resetAlarm() {
         alarmActive = false;
-        System.out.println("  [" + carId + "] Alarm reset - Elevator operational");
+        System.out.println("  [" + carId + "] Alarm reset");
     }
 
-    // ---- Maintenance ----
     public synchronized void setMaintenance(boolean maintenance) {
         if (maintenance) {
             state = ElevatorState.MAINTENANCE;
             direction = Direction.NONE;
             upStops.clear();
             downStops.clear();
-            System.out.println("  [" + carId + "] Set to MAINTENANCE mode");
+            System.out.println("  [" + carId + "] MAINTENANCE mode");
         } else {
             state = ElevatorState.IDLE;
-            System.out.println("  [" + carId + "] Maintenance cleared - now IDLE");
+            System.out.println("  [" + carId + "] Maintenance cleared");
         }
     }
 

@@ -1,8 +1,5 @@
 package com.elevator.panel;
 
-/**
- * Represents a single button that can be pressed and illuminated.
- */
 public class Button {
     private final String label;
     private boolean illuminated;

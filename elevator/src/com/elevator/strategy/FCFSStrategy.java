@@ -5,10 +5,6 @@ import com.elevator.model.ElevatorCar;
 
 import java.util.List;
 
-/**
- * First Come First Serve: assigns the first available elevator.
- * Simple round-robin style, cycles through elevators.
- */
 public class FCFSStrategy implements SchedulingStrategy {
     private int lastAssigned = -1;
 
@@ -23,6 +19,6 @@ public class FCFSStrategy implements SchedulingStrategy {
                 return car;
             }
         }
-        return null; // no available elevator
+        return null;
     }
 }
